@@ -195,7 +195,9 @@ input[type="range"]{accent-color:var(--accent3);background:transparent;border:no
 <div class="container">
 
   <div class="card">
-    <div class="card-title"><span>🔒</span> กำหนดคู่คงที่</div>
+    <div class="card-title"><span>🔒</span> กำหนดทีมคงที่
+      <span style="font-size:.72rem;color:var(--text2);font-weight:400;margin-left:6px;">ใส่ชื่อคนเดียวก็ได้</span>
+    </div>
     <div id="fixPairsSetup"></div>
     <div class="actions-row">
       <button class="btn btn-ghost btn-sm" onclick="addFixPair()">➕ เพิ่มคู่</button>
@@ -234,16 +236,14 @@ input[type="range"]{accent-color:var(--accent3);background:transparent;border:no
 
   <!-- Teams setup -->
   <div class="card">
-    <div class="card-title"><span>👥</span> ทีม
+    <div class="card-title"><span>👥</span> กำหนดทีม
+      <span style="font-size:.72rem;color:var(--text2);font-weight:400;margin-left:6px;">ใส่ชื่อคนเดียวก็ได้</span>
       <button class="btn btn-ghost btn-sm" onclick="addCustomTeam()" style="margin-left:auto;">➕ เพิ่มทีม</button>
     </div>
-    <div style="display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:4px;">
-      <span style="font-size:.7rem;color:var(--text2);padding:0 4px;"></span>
-      <span style="font-size:.7rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:1px;">คนที่ 1</span>
-      <span style="font-size:.7rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:1px;">คนที่ 2 (ถ้ามี)</span>
-      <span></span>
-    </div>
     <div id="customTeamList"></div>
+    <div class="actions-row" style="margin-top:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="removeLastCustomTeam()">➖ ลบล่าสุด</button>
+    </div>
   </div>
 
   <!-- Create match -->
@@ -305,6 +305,11 @@ let fixPairs = [
   {id:'fp1',teamName:'',names:['ผู้เล่นที่1','ผู้เล่นที่2']},
   {id:'fp2',teamName:'',names:['ผู้เล่นที่3','ผู้เล่นที่4']},
 ];
+// helper: get display label for a fix pair team
+function fixTeamLabel(p){
+  if(p.teamName) return p.teamName;
+  return p.names.filter(n=>n&&n.trim()).join(' & ');
+}
 
 // randomTeams = [{id, names:[n1,n2], power, isAnon}]
 let randomTeams   = [];
@@ -618,10 +623,10 @@ function buildMatchCard(m, idx, mode){
   const aWin=m.winner==='A', bWin=m.winner==='B';
   const aClass='team-badge'+(aWin?' winner':'');
   const bClass='team-badge team-b'+(bWin?' winner':'');
-  const aLabel=m.teamA.teamName||m.teamA.names.join(' & ');
-  const bLabel=m.teamB.teamName||m.teamB.names.join(' & ');
-  const aSubtitle=m.teamA.teamName?`<div style="font-size:.7rem;opacity:.7;">${m.teamA.names.join(' & ')}</div>`:'';
-  const bSubtitle=m.teamB.teamName?`<div style="font-size:.7rem;opacity:.7;">${m.teamB.names.join(' & ')}</div>`:'';
+  const aLabel=m.teamA.teamName||m.teamA.names.filter(n=>n&&n.trim()).join(' & ')||m.teamA.names[0];
+  const bLabel=m.teamB.teamName||m.teamB.names.filter(n=>n&&n.trim()).join(' & ')||m.teamB.names[0];
+  const aSubtitle=m.teamA.teamName?`<div style="font-size:.7rem;opacity:.7;">${m.teamA.names.filter(n=>n&&n.trim()).join(' & ')}</div>`:'';
+  const bSubtitle=m.teamB.teamName?`<div style="font-size:.7rem;opacity:.7;">${m.teamB.names.filter(n=>n&&n.trim()).join(' & ')}</div>`:'';
 
   const courtLabel = (m.courtIdx||m.court) ? getCourtLabel(mode==='random'?'r':'f', m.courtIdx||m.court) : '';
 
@@ -649,9 +654,9 @@ function buildMatchCard(m, idx, mode){
     // Header row with team names
     scoreDiv.innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:.8rem;font-weight:700;">
-        <span style="flex:1;text-align:right;color:var(--accent);">${m.teamA.teamName||m.teamA.names.join(' & ')}</span>
+        <span style="flex:1;text-align:right;color:var(--accent);">${m.teamA.teamName||m.teamA.names.filter(n=>n&&n.trim()).join(' & ')}</span>
         <span style="color:var(--text2);min-width:24px;text-align:center;font-family:'Space Mono',monospace;">vs</span>
-        <span style="flex:1;text-align:left;color:var(--accent2);">${m.teamB.teamName||m.teamB.names.join(' & ')}</span>
+        <span style="flex:1;text-align:left;color:var(--accent2);">${m.teamB.teamName||m.teamB.names.filter(n=>n&&n.trim()).join(' & ')}</span>
       </div>`;
 
     // One row per set
@@ -688,8 +693,8 @@ function buildMatchCard(m, idx, mode){
       return `<span style="font-family:'Space Mono',monospace;font-size:.78rem;color:${rowColor};">S${s+1}: ${sa}:${sb}</span>`;
     }).join(' &nbsp;|&nbsp; ');
     let winnerText='';
-    if(m.winner==='A') winnerText=`🏆 <span class="winner-text">${m.teamA.teamName||m.teamA.names.join(' &amp; ')}</span> ชนะ`;
-    else if(m.winner==='B') winnerText=`🏆 <span class="winner-text">${m.teamB.teamName||m.teamB.names.join(' &amp; ')}</span> ชนะ`;
+    if(m.winner==='A') winnerText=`🏆 <span class="winner-text">${m.teamA.teamName||m.teamA.names.filter(n=>n&&n.trim()).join(' &amp; ')}</span> ชนะ`;
+    else if(m.winner==='B') winnerText=`🏆 <span class="winner-text">${m.teamB.teamName||m.teamB.names.filter(n=>n&&n.trim()).join(' &amp; ')}</span> ชนะ`;
     else winnerText=`<span style="color:var(--yellow);">เสมอ</span>`;
     summary.innerHTML=`${winnerText}<br><span style="font-size:.76rem;color:var(--text2);">${setRows}</span>`;
     div.appendChild(summary);
@@ -713,8 +718,8 @@ function updateSetScore(id, setIdx, side, val, mode){
   const hint=document.getElementById(`scoreHint_${id}_${setIdx}`);
   if(hint&&sv.a!==''&&sv.b!==''){
     const sa=+sv.a, sb=+sv.b;
-    if(sa>sb){hint.className='score-result a-win';hint.textContent=(m.teamA.teamName||m.teamA.names[0])+' นำ';}
-    else if(sb>sa){hint.className='score-result b-win';hint.textContent=(m.teamB.teamName||m.teamB.names[0])+' นำ';}
+    if(sa>sb){hint.className='score-result a-win';hint.textContent=(m.teamA.teamName||m.teamA.names.filter(n=>n&&n.trim())[0])+' นำ';}
+    else if(sb>sa){hint.className='score-result b-win';hint.textContent=(m.teamB.teamName||m.teamB.names.filter(n=>n&&n.trim())[0])+' นำ';}
     else{hint.className='score-result draw';hint.textContent='เสมอ';}
   } else if(hint) hint.textContent='';
 
@@ -727,8 +732,8 @@ function updateSetScore(id, setIdx, side, val, mode){
   });
   const overall=document.getElementById('scoreHint_'+id);
   if(overall&&(aWins>0||bWins>0)){
-    if(aWins>bWins){overall.className='score-result a-win';overall.textContent=`${m.teamA.teamName||m.teamA.names[0]} นำ set ${aWins}-${bWins}`;}
-    else if(bWins>aWins){overall.className='score-result b-win';overall.textContent=`${m.teamB.teamName||m.teamB.names[0]} นำ set ${bWins}-${aWins}`;}
+    if(aWins>bWins){overall.className='score-result a-win';overall.textContent=`${m.teamA.teamName||m.teamA.names.filter(n=>n&&n.trim())[0]} นำ set ${aWins}-${bWins}`;}
+    else if(bWins>aWins){overall.className='score-result b-win';overall.textContent=`${m.teamB.teamName||m.teamB.names.filter(n=>n&&n.trim())[0]} นำ set ${bWins}-${aWins}`;}
     else{overall.className='score-result draw';overall.textContent=`set เสมอ ${aWins}-${bWins}`;}
   } else if(overall) overall.textContent='';
 }
@@ -777,23 +782,24 @@ function renderFixPairsSetup(){
   fixPairs.forEach((p,idx)=>{
     const row=document.createElement('div');
     row.className='fix-pair-row';
-    row.style.cssText='flex-wrap:wrap;gap:6px;';
+    row.style.cssText='flex-wrap:wrap;gap:6px;align-items:center;';
     const inputStyle=`style="flex:1;min-width:80px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;"`;
+    const input2Style=`style="flex:1;min-width:80px;background:var(--surface);border:1px dashed var(--border);border-radius:7px;padding:7px 10px;color:var(--text2);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;"`;
     const teamNameStyle=`style="flex:1.2;min-width:100px;background:var(--surface);border:1px solid rgba(168,255,62,.35);border-radius:7px;padding:7px 10px;color:var(--accent3);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;"`;
     row.innerHTML=`
-      <div class="pair-num" style="min-width:32px;">คู่${idx+1}</div>
+      <div class="pair-num" style="min-width:32px;">ทีม${idx+1}</div>
       <input type="text" value="${p.teamName||''}" oninput="fixPairs[${idx}].teamName=this.value" placeholder="🏷️ ชื่อทีม (ถ้ามี)" ${teamNameStyle}/>
-      <input type="text" value="${p.names[0]}" oninput="fixPairs[${idx}].names[0]=this.value" placeholder="คนที่ 1" ${inputStyle}/>
-      <span style="color:var(--text2);font-size:.8rem;">&amp;</span>
-      <input type="text" value="${p.names[1]}" oninput="fixPairs[${idx}].names[1]=this.value" placeholder="คนที่ 2" ${inputStyle}/>
+      <input type="text" value="${p.names[0]||''}" oninput="fixPairs[${idx}].names[0]=this.value" placeholder="คนที่ 1 *" ${inputStyle}/>
+      <span style="color:var(--text2);font-size:.75rem;white-space:nowrap;">+ คนที่ 2</span>
+      <input type="text" value="${p.names[1]||''}" oninput="fixPairs[${idx}].names[1]=this.value" placeholder="(ไม่บังคับ)" ${input2Style}/>
       <button class="btn btn-danger btn-sm" onclick="removeFixPair(${idx})" style="padding:4px 9px;">✕</button>`;
     c.appendChild(row);
   });
 }
 
 function addFixPair(){fixPairs.push({id:'fp'+Date.now(),teamName:'',names:['','']});renderFixPairsSetup();}
-function removeLastFixPair(){if(fixPairs.length>2){fixPairs.pop();renderFixPairsSetup();}}
-function removeFixPair(i){if(fixPairs.length>2){fixPairs.splice(i,1);renderFixPairsSetup();}}
+function removeLastFixPair(){if(fixPairs.length>1){fixPairs.pop();renderFixPairsSetup();}}
+function removeFixPair(i){if(fixPairs.length>1){fixPairs.splice(i,1);renderFixPairsSetup();}}
 
 function generateFixMatches(){
   // Read values
@@ -803,8 +809,9 @@ function generateFixMatches(){
     fixPairs[i].names[0]=inp[1].value.trim();
     fixPairs[i].names[1]=inp[2].value.trim();
   });
-  const valid=fixPairs.filter(p=>p.names[0]&&p.names[1]);
-  if(valid.length<2){alert('ต้องมีอย่างน้อย 2 คู่ที่มีชื่อครบ');return;}
+  // Valid = at least 1 name filled
+  const valid=fixPairs.filter(p=>p.names[0]&&p.names[0].trim());
+  if(valid.length<2){alert('ต้องมีอย่างน้อย 2 ทีมที่มีชื่อคนที่ 1');return;}
 
   const courts=parseInt(document.getElementById('fCourts').value)||1;
   const sets=parseInt(document.getElementById('fSets').value)||2;
@@ -835,12 +842,15 @@ function generateFixMatches(){
 function renderStats(){
   const sc=document.getElementById('statsContent');
   const ms=document.getElementById('matchupStats');
-  // Normalize customMatches to have .names array for stats compatibility
-  const normalizedCustom=customMatches.filter(m=>m.status==='done').map(m=>({
-    ...m,
-    teamA:{...m.teamA, names:[m.teamA.name||'ทีม A']},
-    teamB:{...m.teamB, names:[m.teamB.name||'ทีม B']},
-  }));
+
+  const normalizedCustom=customMatches.filter(m=>m.status==='done').map(m=>{
+    function cml(t){return t.teamName&&t.teamName.trim()?t.teamName.trim():(t.names||[]).filter(n=>n&&n.trim()).join(' & ')||'ทีม';}
+    return {
+      ...m,
+      teamA:{...m.teamA, names:[cml(m.teamA)]},
+      teamB:{...m.teamB, names:[cml(m.teamB)]},
+    };
+  });
   const allMatches=[...randomMatches,...fixMatches,...normalizedCustom];
   const done=allMatches.filter(m=>m.status==='done');
 
@@ -850,63 +860,121 @@ function renderStats(){
     return;
   }
 
-  // Team stats
+  // ── Team stats (count sets won/lost too) ──────────────────
   const teamStats={};
   function ensureTeam(t){
-    const label = t.names ? t.names.join(' & ') : (t.name||t.id);
-    if(!teamStats[t.id]) teamStats[t.id]={names:label,played:0,wins:0,draws:0,loses:0,ptsFor:0,ptsAgainst:0};
+    const label = t.names ? t.names.filter(n=>n&&n.trim()).join(' & ') : (t.name||t.id);
+    if(!teamStats[t.id]) teamStats[t.id]={names:label,played:0,wins:0,draws:0,loses:0,setsFor:0,setsAgainst:0,ptsFor:0,ptsAgainst:0};
   }
   done.forEach(m=>{
     ensureTeam(m.teamA); ensureTeam(m.teamB);
-    const sa=m.scoreA!==''?+m.scoreA:null, sb=m.scoreB!==''?+m.scoreB:null;
-    teamStats[m.teamA.id].played++; teamStats[m.teamB.id].played++;
-    if(sa!==null) teamStats[m.teamA.id].ptsFor+=sa;
-    if(sb!==null) teamStats[m.teamB.id].ptsFor+=sb;
-    if(sa!==null) teamStats[m.teamA.id].ptsAgainst+=sb??0;
-    if(sb!==null) teamStats[m.teamB.id].ptsAgainst+=sa??0;
+    teamStats[m.teamA.id].played++;
+    teamStats[m.teamB.id].played++;
+    // Count sets
+    (m.setScores||[]).forEach(sv=>{
+      if(sv.a!==''&&sv.b!==''){
+        const sa=+sv.a, sb=+sv.b;
+        teamStats[m.teamA.id].ptsFor+=sa; teamStats[m.teamA.id].ptsAgainst+=sb;
+        teamStats[m.teamB.id].ptsFor+=sb; teamStats[m.teamB.id].ptsAgainst+=sa;
+        if(sa>sb){teamStats[m.teamA.id].setsFor++;teamStats[m.teamB.id].setsAgainst++;}
+        else if(sb>sa){teamStats[m.teamB.id].setsFor++;teamStats[m.teamA.id].setsAgainst++;}
+      }
+    });
     if(m.winner==='A'){teamStats[m.teamA.id].wins++;teamStats[m.teamB.id].loses++;}
     else if(m.winner==='B'){teamStats[m.teamB.id].wins++;teamStats[m.teamA.id].loses++;}
     else if(m.winner==='draw'){teamStats[m.teamA.id].draws++;teamStats[m.teamB.id].draws++;}
   });
 
-  const rows=Object.values(teamStats).sort((a,b)=>b.wins-a.wins||(b.ptsFor-b.ptsAgainst)-(a.ptsFor-a.ptsAgainst));
-  sc.innerHTML=`<table class="stats-table">
-    <thead><tr><th>#</th><th>ทีม</th><th>แมทช์</th><th>ชนะ</th><th>แพ้</th><th>เสมอ</th><th>แต้ม +/-</th></tr></thead>
-    <tbody>${rows.map((r,i)=>`<tr>
-      <td><span class="rank-badge rank-${i<3?i+1:'other'}">${i+1}</span></td>
-      <td>${r.names}</td>
-      <td style="font-family:'Space Mono',monospace;">${r.played}</td>
-      <td style="color:var(--accent3);font-weight:700;">${r.wins}</td>
-      <td style="color:var(--red);">${r.loses}</td>
-      <td style="color:var(--yellow);">${r.draws}</td>
-      <td style="font-family:'Space Mono',monospace;font-size:.78rem;">${r.ptsFor}:${r.ptsAgainst}</td>
-    </tr>`).join('')}</tbody>
-  </table>`;
-
-  // Match history
-  ms.innerHTML=`<table class="stats-table">
-    <thead><tr><th>แมทช์</th><th>สกอร์</th><th>ผล</th></tr></thead>
-    <tbody>${done.map((m,i)=>{
-      const sa=m.scoreA!==''?m.scoreA:'–', sb=m.scoreB!==''?m.scoreB:'–';
-      const winnerName=m.winner==='A'?m.teamA.names.join('&'):m.winner==='B'?m.teamB.names.join('&'):'เสมอ';
-      const winnerColor=m.winner==='A'?'var(--accent)':m.winner==='B'?'var(--accent2)':'var(--yellow)';
+  const rows=Object.values(teamStats).sort((a,b)=>b.wins-a.wins||b.setsFor-a.setsFor||(b.ptsFor-b.ptsAgainst)-(a.ptsFor-a.ptsAgainst));
+  sc.innerHTML=`<div style="overflow-x:auto;"><table class="stats-table">
+    <thead><tr>
+      <th>#</th><th>ทีม</th>
+      <th title="แมทช์ที่เล่น">🎮</th>
+      <th title="แมทช์ชนะ" style="color:var(--accent3);">ชนะ</th>
+      <th title="แมทช์แพ้" style="color:var(--red);">แพ้</th>
+      <th title="เสมอ" style="color:var(--yellow);">เสมอ</th>
+      <th title="เซตชนะ/แพ้" style="color:var(--accent);">Set W/L</th>
+      <th title="แต้มรวม" style="color:var(--text2);">แต้ม</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const setDiff=r.setsFor-r.setsAgainst;
+      const ptsDiff=r.ptsFor-r.ptsAgainst;
       return `<tr>
-        <td style="font-size:.8rem;">${m.teamA.names.join('&')} vs ${m.teamB.names.join('&')}</td>
-        <td style="font-family:'Space Mono',monospace;">${sa}:${sb}</td>
-        <td style="color:${winnerColor};font-weight:700;">${m.winner==='draw'?'เสมอ':'🏆 '+winnerName}</td>
+        <td><span class="rank-badge rank-${i<3?i+1:'other'}">${i+1}</span></td>
+        <td style="font-weight:600;">${r.names}</td>
+        <td style="font-family:'Space Mono',monospace;text-align:center;">${r.played}</td>
+        <td style="color:var(--accent3);font-weight:700;text-align:center;">${r.wins}</td>
+        <td style="color:var(--red);text-align:center;">${r.loses}</td>
+        <td style="color:var(--yellow);text-align:center;">${r.draws}</td>
+        <td style="font-family:'Space Mono',monospace;text-align:center;">
+          <span style="color:${setDiff>0?'var(--accent3)':setDiff<0?'var(--red)':'var(--text2)'};">${r.setsFor}</span>
+          <span style="color:var(--text2);">:</span>
+          <span style="color:var(--text2);">${r.setsAgainst}</span>
+        </td>
+        <td style="font-family:'Space Mono',monospace;font-size:.78rem;text-align:center;">
+          <span style="color:${ptsDiff>0?'var(--accent3)':ptsDiff<0?'var(--red)':'var(--text2)'};">${r.ptsFor}</span>
+          <span style="color:var(--text2);">:</span>${r.ptsAgainst}
+        </td>
       </tr>`;
     }).join('')}</tbody>
-  </table>`;
+  </table></div>`;
+
+  // ── Match history with per-set breakdown ──────────────────
+  ms.innerHTML=`<div style="overflow-x:auto;"><table class="stats-table">
+    <thead><tr><th>แมทช์</th><th>Set แต่ละเกม</th><th>Set</th><th>ผล</th></tr></thead>
+    <tbody>${done.map((m,i)=>{
+      const aName=m.teamA.names.filter(n=>n&&n.trim()).join(' & ');
+      const bName=m.teamB.names.filter(n=>n&&n.trim()).join(' & ');
+      const winnerColor=m.winner==='A'?'var(--accent)':m.winner==='B'?'var(--accent2)':'var(--yellow)';
+      const winnerLabel=m.winner==='A'?'🏆 '+aName:m.winner==='B'?'🏆 '+bName:'เสมอ';
+
+      // Per-set score cells
+      const setCells=(m.setScores||[]).map((sv,s)=>{
+        if(sv.a===''&&sv.b==='') return '';
+        const sa=sv.a!==''?sv.a:'–', sb=sv.b!==''?sv.b:'–';
+        let color='var(--text2)';
+        if(sv.a!==''&&sv.b!==''){
+          if(+sv.a>+sv.b) color='var(--accent)';
+          else if(+sv.b>+sv.a) color='var(--accent2)';
+          else color='var(--yellow)';
+        }
+        return `<span style="display:inline-block;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-family:'Space Mono',monospace;font-size:.75rem;color:${color};white-space:nowrap;">S${s+1} <b>${sa}:${sb}</b></span>`;
+      }).filter(Boolean).join(' ');
+
+      // Set count tally
+      let aSetW=0,bSetW=0;
+      (m.setScores||[]).forEach(sv=>{
+        if(sv.a!==''&&sv.b!==''){if(+sv.a>+sv.b)aSetW++;else if(+sv.b>+sv.a)bSetW++;}
+      });
+      const setTallyColor=aSetW>bSetW?'var(--accent)':bSetW>aSetW?'var(--accent2)':'var(--yellow)';
+
+      return `<tr>
+        <td style="font-size:.8rem;min-width:120px;">
+          <span style="color:var(--accent);font-weight:600;">${aName}</span>
+          <span style="color:var(--text2);margin:0 4px;">vs</span>
+          <span style="color:var(--accent2);font-weight:600;">${bName}</span>
+        </td>
+        <td style="font-size:.78rem;">${setCells||'–'}</td>
+        <td style="font-family:'Space Mono',monospace;font-size:.82rem;text-align:center;white-space:nowrap;">
+          <span style="color:${setTallyColor};font-weight:700;">${aSetW}:${bSetW}</span>
+        </td>
+        <td style="color:${winnerColor};font-weight:700;white-space:nowrap;">${winnerLabel}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
 }
+
 
 // ============================================================
 // CUSTOM TAB — Teams & Matches
 // ============================================================
-let customTeams = [];
+let customTeams = [
+  {id:'ct1', teamName:'', names:['','']}
+];
 let customMatches = [];
 
 function addCustomTeam(){
-  customTeams.push({id:'ct'+Date.now(), p1:'', p2:''});
+  customTeams.push({id:'ct'+Date.now(), teamName:'', names:['','']});
   renderCustomTeams();
   renderCustomTeamSelects();
 }
@@ -915,12 +983,16 @@ function removeCustomTeam(i){
   customTeams.splice(i,1);
   renderCustomTeams(); renderCustomTeamSelects();
 }
+function removeLastCustomTeam(){
+  if(customTeams.length<=1){alert('ต้องมีอย่างน้อย 1 ทีม');return;}
+  customTeams.pop();
+  renderCustomTeams(); renderCustomTeamSelects();
+}
 
-function getTeamLabel(t){
-  if(t.p1&&t.p2) return t.p1+' & '+t.p2;
-  if(t.p1) return t.p1;
-  if(t.p2) return t.p2;
-  return '(ไม่มีชื่อ)';
+function getCustomTeamLabel(t){
+  if(t.teamName && t.teamName.trim()) return t.teamName.trim();
+  const filled = (t.names||[]).filter(n=>n&&n.trim());
+  return filled.length ? filled.join(' & ') : '(ไม่มีชื่อ)';
 }
 
 function renderCustomTeams(){
@@ -933,24 +1005,31 @@ function renderCustomTeams(){
   c.innerHTML='';
   customTeams.forEach((t,i)=>{
     const row=document.createElement('div');
-    row.style.cssText='display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px;';
-    const iStyle=`background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;width:100%;`;
+    row.className='fix-pair-row';
+    row.style.cssText='flex-wrap:wrap;gap:6px;align-items:center;';
+    const inputStyle=`style="flex:1;min-width:80px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;"`;
+    const input2Style=`style="flex:1;min-width:80px;background:var(--surface);border:1px dashed var(--border);border-radius:7px;padding:7px 10px;color:var(--text2);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;"`;
+    const teamNameStyle=`style="flex:1.2;min-width:100px;background:var(--surface);border:1px solid rgba(168,255,62,.35);border-radius:7px;padding:7px 10px;color:var(--accent3);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;"`;
     row.innerHTML=`
-      <span style="font-size:.72rem;color:var(--text2);font-family:'Space Mono',monospace;padding:0 4px;">${i+1}</span>
-      <input type="text" value="${t.p1}" placeholder="ชื่อคนที่ 1" style="${iStyle}"
-        oninput="customTeams[${i}].p1=this.value;renderCustomTeamSelects()"/>
-      <input type="text" value="${t.p2}" placeholder="ชื่อคนที่ 2 (ถ้ามี)" style="${iStyle}color:var(--text2);"
-        oninput="customTeams[${i}].p2=this.value;renderCustomTeamSelects()"/>
+      <div class="pair-num" style="min-width:32px;">ทีม${i+1}</div>
+      <input type="text" value="${t.teamName||''}" placeholder="🏷️ ชื่อทีม (ถ้ามี)" ${teamNameStyle}
+        oninput="customTeams[${i}].teamName=this.value;renderCustomTeamSelects()"/>
+      <input type="text" value="${(t.names&&t.names[0])||''}" placeholder="คนที่ 1 *" ${inputStyle}
+        oninput="customTeams[${i}].names[0]=this.value;renderCustomTeamSelects()"/>
+      <span style="color:var(--text2);font-size:.75rem;white-space:nowrap;">+ คนที่ 2</span>
+      <input type="text" value="${(t.names&&t.names[1])||''}" placeholder="(ไม่บังคับ)" ${input2Style}
+        oninput="customTeams[${i}].names[1]=this.value;renderCustomTeamSelects()"/>
       <button class="btn btn-danger btn-sm" onclick="removeCustomTeam(${i})" style="padding:4px 9px;">✕</button>`;
     c.appendChild(row);
   });
 }
+
 function renderCustomTeamSelects(){
   ['cmTeamA','cmTeamB'].forEach(id=>{
     const sel=document.getElementById(id);
     if(!sel)return;
     const prev=sel.value;
-    sel.innerHTML=customTeams.map(t=>`<option value="${t.id}">${getTeamLabel(t)}</option>`).join('');
+    sel.innerHTML=customTeams.map(t=>`<option value="${t.id}">${getCustomTeamLabel(t)}</option>`).join('');
     if(customTeams.find(t=>t.id===prev)) sel.value=prev;
   });
 }
@@ -963,10 +1042,11 @@ function addCustomMatch(){
   const sets=parseInt(document.getElementById('cmSets').value)||2;
   const tA=customTeams.find(t=>t.id===aId);
   const tB=customTeams.find(t=>t.id===bId);
+  if(!tA||!tB) return;
   customMatches.push({
     id:'cm'+Date.now(),
-    teamA:{id:tA.id, name:tA.name, members:tA.members},
-    teamB:{id:tB.id, name:tB.name, members:tB.members},
+    teamA:{id:tA.id, teamName:tA.teamName, names:tA.names.slice()},
+    teamB:{id:tB.id, teamName:tB.teamName, names:tB.names.slice()},
     setScores: Array.from({length:sets},()=>({a:'',b:''})),
     status:'playing', winner:null,
   });
@@ -995,8 +1075,14 @@ function buildCustomMatchCard(m, idx){
   const aWin=m.winner==='A', bWin=m.winner==='B';
   const aClass='team-badge'+(aWin?' winner':'');
   const bClass='team-badge team-b'+(bWin?' winner':'');
-  const aSub=m.teamA.members?`<div style="font-size:.68rem;opacity:.65;">${m.teamA.members}</div>`:'';
-  const bSub=m.teamB.members?`<div style="font-size:.68rem;opacity:.65;">${m.teamB.members}</div>`:'';
+
+  // Label: prefer teamName, else join non-empty names
+  function cmLabel(t){ return t.teamName&&t.teamName.trim() ? t.teamName.trim() : (t.names||[]).filter(n=>n&&n.trim()).join(' & ') || 'ทีม'; }
+  // Sub-label: if teamName exists, show member names underneath
+  function cmSub(t){ return t.teamName&&t.teamName.trim() ? `<div style="font-size:.68rem;opacity:.65;">${(t.names||[]).filter(n=>n&&n.trim()).join(' & ')}</div>` : ''; }
+
+  const aLabel=cmLabel(m.teamA), bLabel=cmLabel(m.teamB);
+  const aSub=cmSub(m.teamA), bSub=cmSub(m.teamB);
 
   const statusBadge=m.status==='done'
     ?`<span class="status-badge status-done">✓ จบ</span>`
@@ -1006,9 +1092,9 @@ function buildCustomMatchCard(m, idx){
     <div class="match-top">
       <div class="match-num">M${idx+1}</div>
       <div class="match-teams">
-        <div class="${aClass}" style="text-align:center;">${aWin?'🏆 ':''}${m.teamA.name||'ทีม A'}${aSub}</div>
+        <div class="${aClass}" style="text-align:center;">${aWin?'🏆 ':''}${aLabel}${aSub}</div>
         <div class="vs-tag">VS</div>
-        <div class="${bClass}" style="text-align:center;">${bWin?'🏆 ':''}${m.teamB.name||'ทีม B'}${bSub}</div>
+        <div class="${bClass}" style="text-align:center;">${bWin?'🏆 ':''}${bLabel}${bSub}</div>
       </div>
       <div class="match-status-col">${statusBadge}</div>
     </div>`;
@@ -1020,9 +1106,9 @@ function buildCustomMatchCard(m, idx){
     // Header
     scoreDiv.innerHTML=`
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.82rem;font-weight:700;">
-        <span style="flex:1;text-align:right;color:var(--accent);">${m.teamA.name||'ทีม A'}</span>
+        <span style="flex:1;text-align:right;color:var(--accent);">${aLabel}</span>
         <span style="color:var(--text2);min-width:28px;text-align:center;">vs</span>
-        <span style="flex:1;text-align:left;color:var(--accent2);">${m.teamB.name||'ทีม B'}</span>
+        <span style="flex:1;text-align:left;color:var(--accent2);">${bLabel}</span>
       </div>`;
 
     // Set rows
@@ -1058,8 +1144,8 @@ function buildCustomMatchCard(m, idx){
       return `<span style="font-family:'Space Mono',monospace;font-size:.75rem;color:${c};">S${s+1}: ${sa}:${sb}</span>`;
     }).join(' | ');
     let wt='';
-    if(m.winner==='A') wt=`🏆 <span class="winner-text">${m.teamA.name}</span> ชนะ`;
-    else if(m.winner==='B') wt=`🏆 <span class="winner-text">${m.teamB.name}</span> ชนะ`;
+    if(m.winner==='A') wt=`🏆 <span class="winner-text">${aLabel}</span> ชนะ`;
+    else if(m.winner==='B') wt=`🏆 <span class="winner-text">${bLabel}</span> ชนะ`;
     else wt=`<span style="color:var(--yellow);">เสมอ</span>`;
     summary.innerHTML=`${wt}<br><span style="font-size:.74rem;color:var(--text2);">${setRows}</span>`;
     div.appendChild(summary);
@@ -1089,9 +1175,10 @@ function updateCustomScore(id, s, side, val){
   if(side==='A') m.setScores[s].a=val; else m.setScores[s].b=val;
   const sv=m.setScores[s];
   const hint=document.getElementById('csh_'+id+'_'+s);
+  function cml(t){return t.teamName&&t.teamName.trim()?t.teamName.trim():(t.names||[]).filter(n=>n&&n.trim()).join(' & ')||'ทีม';}
   if(hint&&sv.a!==''&&sv.b!==''){
-    if(+sv.a>+sv.b){hint.className='score-result a-win';hint.textContent=m.teamA.name+' นำ';}
-    else if(+sv.b>+sv.a){hint.className='score-result b-win';hint.textContent=m.teamB.name+' นำ';}
+    if(+sv.a>+sv.b){hint.className='score-result a-win';hint.textContent=cml(m.teamA)+' นำ';}
+    else if(+sv.b>+sv.a){hint.className='score-result b-win';hint.textContent=cml(m.teamB)+' นำ';}
     else{hint.className='score-result draw';hint.textContent='เสมอ';}
   } else if(hint) hint.textContent='';
   updateCustomTally(m);
@@ -1100,13 +1187,14 @@ function updateCustomScore(id, s, side, val){
 function updateCustomTally(m){
   const tally=document.getElementById('tally_'+m.id);
   if(!tally)return;
+  function cml(t){return t.teamName&&t.teamName.trim()?t.teamName.trim():(t.names||[]).filter(n=>n&&n.trim()).join(' & ')||'ทีม';}
   let aW=0,bW=0;
   m.setScores.forEach(sv=>{ if(sv.a!==''&&sv.b!==''){if(+sv.a>+sv.b)aW++;else if(+sv.b>+sv.a)bW++;}});
   const total=aW+bW;
   if(!total){tally.innerHTML='';return;}
   let txt='', cls='';
-  if(aW>bW){txt=`${m.teamA.name} นำ set ${aW}-${bW}`;cls='a-win';}
-  else if(bW>aW){txt=`${m.teamB.name} นำ set ${bW}-${aW}`;cls='b-win';}
+  if(aW>bW){txt=`${cml(m.teamA)} นำ set ${aW}-${bW}`;cls='a-win';}
+  else if(bW>aW){txt=`${cml(m.teamB)} นำ set ${bW}-${aW}`;cls='b-win';}
   else{txt=`เสมอ set ${aW}-${bW} 🔥`;cls='draw';}
   tally.innerHTML=`<span class="score-result ${cls}" style="font-size:.8rem;">${txt}</span>`;
 }
@@ -1138,6 +1226,8 @@ function finishCustomMatch(id){
 // ============================================================
 renderPlayerTable();
 renderFixPairsSetup();
+renderCustomTeams();
+renderCustomTeamSelects();
 updateCourtNameInputs('r');
 updateCourtNameInputs('f');
 
