@@ -660,9 +660,12 @@ function buildMatchCard(m, idx, mode){
       </div>`;
 
     // One row per set
+    const setsContainer = document.createElement('div');
+    setsContainer.id = 'sets_main_'+m.id;
     for(let s=0;s<m.sets;s++){
       const row=document.createElement('div');
       row.className='score-row';
+      row.id='sr_'+m.id+'_'+s;
       row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;';
       const sv=m.setScores[s]||{a:'',b:''};
       row.innerHTML=`
@@ -673,15 +676,20 @@ function buildMatchCard(m, idx, mode){
         <input type="number" class="score-input" id="sb_${m.id}_${s}" value="${sv.b}" min="0" max="99"
           oninput="updateSetScore('${m.id}',${s},'B',this.value,'${mode}')" placeholder="0"/>
         <span id="scoreHint_${m.id}_${s}" class="score-result"></span>`;
-      scoreDiv.appendChild(row);
+      setsContainer.appendChild(row);
     }
+    scoreDiv.appendChild(setsContainer);
 
-    // Overall hint + finish button
+    // Overall hint + add/remove set + finish button
     const footer=document.createElement('div');
-    footer.style.cssText='display:flex;align-items:center;gap:8px;margin-top:4px;';
+    footer.style.cssText='display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;';
     footer.innerHTML=`
       <span id="scoreHint_${m.id}" class="score-result" style="font-size:.82rem;"></span>
-      <button class="btn btn-success btn-sm" style="margin-left:auto;" onclick="finishMatch('${m.id}','${mode}')">✓ จบแมทช์</button>`;
+      <div style="display:flex;gap:6px;margin-left:auto;align-items:center;">
+        <button class="btn btn-ghost btn-sm" style="color:var(--accent3);border-color:var(--accent3);" onclick="addMainSet('${m.id}','${mode}')">➕ เพิ่ม Set</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red);" onclick="removeMainSet('${m.id}','${mode}')">➖</button>
+        <button class="btn btn-success btn-sm" onclick="finishMatch('${m.id}','${mode}')">✓ จบแมทช์</button>
+      </div>`;
     scoreDiv.appendChild(footer);
     div.appendChild(scoreDiv);
   } else if(m.status==='done'){
@@ -772,6 +780,52 @@ function finishMatch(id, mode){
 
 function clearRandomMatches(){randomMatches=[];randomTeams=[];document.getElementById('teamPreview').innerHTML='';renderRandomMatches();}
 function clearFixMatches(){fixMatches=[];renderFixMatches();}
+
+function addMainSet(id, mode){
+  const list=mode==='random'?randomMatches:fixMatches;
+  const m=list.find(x=>x.id===id);
+  if(!m)return;
+  const s=m.setScores.length;
+  m.setScores.push({a:'',b:''});
+  m.sets=m.setScores.length;
+  const container=document.getElementById('sets_main_'+id);
+  if(container){
+    const row=document.createElement('div');
+    row.className='score-row';
+    row.id='sr_'+id+'_'+s;
+    row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;';
+    row.innerHTML=`
+      <span class="score-label" style="color:var(--text2);min-width:46px;">Set ${s+1}</span>
+      <input type="number" class="score-input" id="sa_${id}_${s}" value="" min="0" max="99"
+        oninput="updateSetScore('${id}',${s},'A',this.value,'${mode}')" placeholder="0"/>
+      <span class="score-sep">:</span>
+      <input type="number" class="score-input" id="sb_${id}_${s}" value="" min="0" max="99"
+        oninput="updateSetScore('${id}',${s},'B',this.value,'${mode}')" placeholder="0"/>
+      <span id="scoreHint_${id}_${s}" class="score-result"></span>`;
+    container.appendChild(row);
+  }
+}
+
+function removeMainSet(id, mode){
+  const list=mode==='random'?randomMatches:fixMatches;
+  const m=list.find(x=>x.id===id);
+  if(!m||m.setScores.length<=1)return;
+  m.setScores.pop();
+  m.sets=m.setScores.length;
+  const container=document.getElementById('sets_main_'+id);
+  if(container&&container.lastChild) container.removeChild(container.lastChild);
+  // Refresh overall hint
+  const overall=document.getElementById('scoreHint_'+id);
+  if(overall){
+    let aW=0,bW=0;
+    m.setScores.forEach(sv=>{ if(sv.a!==''&&sv.b!==''){if(+sv.a>+sv.b)aW++;else if(+sv.b>+sv.a)bW++;}});
+    if(aW>0||bW>0){
+      if(aW>bW){overall.className='score-result a-win';overall.textContent=`${m.teamA.teamName||m.teamA.names.filter(n=>n&&n.trim())[0]} นำ set ${aW}-${bW}`;}
+      else if(bW>aW){overall.className='score-result b-win';overall.textContent=`${m.teamB.teamName||m.teamB.names.filter(n=>n&&n.trim())[0]} นำ set ${bW}-${aW}`;}
+      else{overall.className='score-result draw';overall.textContent=`set เสมอ ${aW}-${bW}`;}
+    } else { overall.textContent=''; }
+  }
+}
 
 // ============================================================
 // FIX PAIRS SETUP
