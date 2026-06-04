@@ -145,6 +145,7 @@ input[type="range"]{accent-color:var(--accent3);background:transparent;border:no
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('random')">🎲 สุ่มทีม</button>
   <button class="tab-btn" onclick="switchTab('fix')">🔒 Fix Team</button>
+  <button class="tab-btn" onclick="switchTab('custom')">✏️ สร้างเอง</button>
   <button class="tab-btn" onclick="switchTab('stats')">📊 สถิติ</button>
 </div>
 
@@ -167,10 +168,11 @@ input[type="range"]{accent-color:var(--accent3);background:transparent;border:no
   <div class="card">
     <div class="card-title"><span>⚙️</span> ตั้งค่า</div>
     <div class="settings-row">
-      <div class="field-group"><label>คอร์ท</label><input type="number" id="rCourts" value="1" min="1" max="6"></div>
+      <div class="field-group"><label>จำนวนสนาม</label><input type="number" id="rCourts" value="2" min="1" max="8" oninput="updateCourtNameInputs('r')"></div>
       <div class="field-group"><label>Set ต่อแมทช์</label><input type="number" id="rSets" value="2" min="1" max="5"></div>
       <div class="field-group"><label>ติดกันไม่เกิน</label><input type="number" id="rMaxConsec" value="2" min="1" max="5"></div>
     </div>
+    <div id="rCourtNames" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"></div>
   </div>
 
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
@@ -204,10 +206,11 @@ input[type="range"]{accent-color:var(--accent3);background:transparent;border:no
   <div class="card">
     <div class="card-title"><span>⚙️</span> ตั้งค่า</div>
     <div class="settings-row">
-      <div class="field-group"><label>คอร์ท</label><input type="number" id="fCourts" value="1" min="1" max="6"></div>
+      <div class="field-group"><label>จำนวนสนาม</label><input type="number" id="fCourts" value="2" min="1" max="8" oninput="updateCourtNameInputs('f')"></div>
       <div class="field-group"><label>Set ต่อแมทช์</label><input type="number" id="fSets" value="2" min="1" max="5"></div>
       <div class="field-group"><label>ติดกันไม่เกิน</label><input type="number" id="fMaxConsec" value="2" min="1" max="5"></div>
     </div>
+    <div id="fCourtNames" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"></div>
   </div>
 
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
@@ -220,6 +223,56 @@ input[type="range"]{accent-color:var(--accent3);background:transparent;border:no
       <span id="fQueueInfo" class="info-chip" style="margin-left:auto;">0 แมทช์</span>
     </div>
     <div id="fixMatchList"><div class="empty-state"><span class="emoji">🔒</span>กำหนดคู่แล้วกด "สร้างตาราง"</div></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ======= CUSTOM TAB ======= -->
+<div id="tab-custom" class="tab-content">
+<div class="container">
+
+  <!-- Teams setup -->
+  <div class="card">
+    <div class="card-title"><span>👥</span> ทีม
+      <button class="btn btn-ghost btn-sm" onclick="addCustomTeam()" style="margin-left:auto;">➕ เพิ่มทีม</button>
+    </div>
+    <div style="display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:4px;">
+      <span style="font-size:.7rem;color:var(--text2);padding:0 4px;"></span>
+      <span style="font-size:.7rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:1px;">คนที่ 1</span>
+      <span style="font-size:.7rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:1px;">คนที่ 2 (ถ้ามี)</span>
+      <span></span>
+    </div>
+    <div id="customTeamList"></div>
+  </div>
+
+  <!-- Create match -->
+  <div class="card">
+    <div class="card-title"><span>⚔️</span> สร้างแมทช์</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+      <div class="field-group" style="min-width:130px;">
+        <label>ทีม A</label>
+        <select id="cmTeamA" style="background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:8px 10px;color:var(--accent);font-family:'Kanit',sans-serif;font-size:.9rem;outline:none;"></select>
+      </div>
+      <div style="padding-bottom:8px;color:var(--text2);font-weight:700;">VS</div>
+      <div class="field-group" style="min-width:130px;">
+        <label>ทีม B</label>
+        <select id="cmTeamB" style="background:var(--surface2);border:1px solid var(--accent2);border-radius:8px;padding:8px 10px;color:var(--accent2);font-family:'Kanit',sans-serif;font-size:.9rem;outline:none;"></select>
+      </div>
+      <div class="field-group" style="min-width:80px;">
+        <label>Set เริ่มต้น</label>
+        <input type="number" id="cmSets" value="2" min="1" max="7" style="width:80px;"/>
+      </div>
+      <button class="btn btn-primary" onclick="addCustomMatch()">➕ เพิ่มแมทช์</button>
+    </div>
+  </div>
+
+  <!-- Match list -->
+  <div class="card">
+    <div class="card-title"><span>📋</span> แมทช์
+      <span id="cmQueueInfo" class="info-chip" style="margin-left:auto;">0 แมทช์</span>
+    </div>
+    <div id="customMatchList"><div class="empty-state"><span class="emoji">⚔️</span>สร้างทีมแล้วเพิ่มแมทช์</div></div>
   </div>
 
 </div>
@@ -262,11 +315,12 @@ let fixMatches    = [];
 // TAB
 // ============================================================
 function switchTab(tab) {
-  ['random','fix','stats'].forEach((t,i)=>{
+  ['random','fix','custom','stats'].forEach((t,i)=>{
     document.querySelectorAll('.tab-btn')[i].classList.toggle('active',t===tab);
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
   });
   if(tab==='stats') renderStats();
+  if(tab==='custom'){ renderCustomTeams(); renderCustomTeamSelects(); renderCustomMatches(); }
 }
 
 // ============================================================
@@ -366,7 +420,7 @@ function buildRandomTeamsAndGenerate(){
     setScores: Array.from({length:sets},()=>({a:'',b:''})),
     winner:null,
   }));
-  assignInitialCourts(randomMatches, courts);
+  assignInitialCourts(randomMatches, courts, 'r');
   renderRandomMatches();
 }
 
@@ -389,37 +443,76 @@ function showTeamPreview(teams){
 }
 
 // ============================================================
+// COURT NAME SYSTEM
+// ============================================================
+let rCourtNames = ['สนาม 1','สนาม 2'];
+let fCourtNames = ['สนาม 1','สนาม 2'];
+
+function updateCourtNameInputs(prefix){
+  const count = parseInt(document.getElementById(prefix+'Courts').value)||1;
+  const store = prefix==='r' ? rCourtNames : fCourtNames;
+  // Resize array
+  while(store.length < count) store.push('สนาม '+(store.length+1));
+  store.length = count;
+  const container = document.getElementById(prefix+'CourtNames');
+  container.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const wrap = document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:4px;';
+    wrap.innerHTML=`<label style="font-size:.7rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:1px;">สนามที่ ${i+1}</label>
+      <input type="text" value="${store[i]}" oninput="${prefix}CourtNames[${i}]=this.value"
+        style="width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+        padding:6px 9px;color:var(--accent3);font-family:'Kanit',sans-serif;font-size:.82rem;outline:none;" placeholder="สนาม ${i+1}"/>`;
+    container.appendChild(wrap);
+  }
+}
+
+function getCourtLabel(prefix, courtIdx){
+  const store = prefix==='r' ? rCourtNames : fCourtNames;
+  return store[courtIdx-1] || ('สนาม '+courtIdx);
+}
+
+// ============================================================
 // ASSIGN COURTS — pick matches to play simultaneously without player conflicts
 // ============================================================
-function assignInitialCourts(matches, courts){
-  // Reset all to queue first
-  matches.forEach(m=>{ m.status='queue'; });
-  let courtNum=1;
-  const busyTeams=new Set();
-  for(let i=0;i<matches.length && courtNum<=courts;i++){
-    const m=matches[i];
+function assignInitialCourts(matches, courts, prefix){
+  matches.forEach(m=>{ m.status='queue'; m.courtIdx=null; });
+  // Available court slots 1..courts
+  const available = Array.from({length:courts},(_,i)=>i+1);
+  const busyTeams = new Set();
+  for(let i=0;i<matches.length && available.length>0;i++){
+    const m = matches[i];
     if(!busyTeams.has(m.teamA.id) && !busyTeams.has(m.teamB.id)){
-      m.status='playing';
-      m.court=courtNum++;
+      m.status = 'playing';
+      m.courtIdx = available.shift();
+      m.court = m.courtIdx; // legacy
       busyTeams.add(m.teamA.id);
       busyTeams.add(m.teamB.id);
     }
   }
-  // Assign court numbers to remaining queued matches sequentially
-  let qCourtNum=1;
-  matches.forEach(m=>{ if(m.status==='queue'){ m.court=((qCourtNum-1)%courts)+1; qCourtNum++; } });
 }
 
-function advanceQueue(list, finishedMatch, courts){
-  // After a match finishes, try to fill its court with next non-conflicting queued match
-  const busyTeams=new Set();
-  list.filter(m=>m.status==='playing').forEach(m=>{ busyTeams.add(m.teamA.id); busyTeams.add(m.teamB.id); });
-  const queued=list.filter(m=>m.status==='queue');
-  for(const next of queued){
-    if(!busyTeams.has(next.teamA.id) && !busyTeams.has(next.teamB.id)){
-      next.status='playing';
-      next.court=finishedMatch.court;
-      break;
+function advanceQueue(list, finishedMatch, courts, prefix){
+  // Find all court slots currently occupied by playing matches
+  const occupiedCourts = new Set(list.filter(m=>m.status==='playing').map(m=>m.courtIdx||m.court));
+  // Build list of free court slots (1..courts that are not occupied)
+  const freeCourts = [];
+  for(let c=1;c<=courts;c++){ if(!occupiedCourts.has(c)) freeCourts.push(c); }
+  if(!freeCourts.length) return;
+
+  // Try to fill each free court
+  for(const freeCourt of freeCourts){
+    // Recompute busy teams each iteration (as we assign matches)
+    const busyTeams = new Set();
+    list.filter(m=>m.status==='playing').forEach(m=>{ busyTeams.add(m.teamA.id); busyTeams.add(m.teamB.id); });
+    const queued = list.filter(m=>m.status==='queue');
+    for(const next of queued){
+      if(!busyTeams.has(next.teamA.id) && !busyTeams.has(next.teamB.id)){
+        next.status = 'playing';
+        next.courtIdx = freeCourt;
+        next.court = freeCourt;
+        break;
+      }
     }
   }
 }
@@ -530,6 +623,8 @@ function buildMatchCard(m, idx, mode){
   const aSubtitle=m.teamA.teamName?`<div style="font-size:.7rem;opacity:.7;">${m.teamA.names.join(' & ')}</div>`:'';
   const bSubtitle=m.teamB.teamName?`<div style="font-size:.7rem;opacity:.7;">${m.teamB.names.join(' & ')}</div>`:'';
 
+  const courtLabel = (m.courtIdx||m.court) ? getCourtLabel(mode==='random'?'r':'f', m.courtIdx||m.court) : '';
+
   div.innerHTML=`
     <div class="match-top">
       <div class="match-num">M${idx+1}</div>
@@ -540,9 +635,11 @@ function buildMatchCard(m, idx, mode){
       </div>
       <div class="match-status-col">
         ${statusLabel}
-        ${m.status!=='done'?`<div class="court-badge">คอร์ท ${m.court}</div>`:''}
+        ${m.status==='playing'?`<div class="court-badge" style="cursor:pointer;" onclick="showCourtPicker('${m.id}','${mode}')" title="เปลี่ยนสนาม">📍 ${courtLabel} ▾</div>`:''}
+        ${m.status==='queue'?`<div style="font-size:.72rem;color:var(--text2);">รอคิว</div>`:''}
       </div>
-    </div>`;
+    </div>
+    <div id="courtPicker_${m.id}" style="display:none;margin-top:6px;padding:6px 0 2px;border-top:1px solid var(--border);"></div>`;
 
   // Score entry (playing) or result summary (done)
   if(m.status==='playing'){
@@ -662,8 +759,8 @@ function finishMatch(id, mode){
   }
 
   m.status='done';
-  // Advance queue — find next match that doesn't conflict with currently playing teams
-  advanceQueue(list, m, courts);
+  const prefix = mode==='random'?'r':'f';
+  advanceQueue(list, m, courts, prefix);
 
   if(mode==='random') renderRandomMatches(); else renderFixMatches();
 }
@@ -728,7 +825,7 @@ function generateFixMatches(){
     setScores: Array.from({length:sets},()=>({a:'',b:''})),
     winner:null,
   }));
-  assignInitialCourts(fixMatches, courts);
+  assignInitialCourts(fixMatches, courts, 'f');
   renderFixMatches();
 }
 
@@ -738,7 +835,13 @@ function generateFixMatches(){
 function renderStats(){
   const sc=document.getElementById('statsContent');
   const ms=document.getElementById('matchupStats');
-  const allMatches=[...randomMatches,...fixMatches];
+  // Normalize customMatches to have .names array for stats compatibility
+  const normalizedCustom=customMatches.filter(m=>m.status==='done').map(m=>({
+    ...m,
+    teamA:{...m.teamA, names:[m.teamA.name||'ทีม A']},
+    teamB:{...m.teamB, names:[m.teamB.name||'ทีม B']},
+  }));
+  const allMatches=[...randomMatches,...fixMatches,...normalizedCustom];
   const done=allMatches.filter(m=>m.status==='done');
 
   if(!done.length){
@@ -750,7 +853,8 @@ function renderStats(){
   // Team stats
   const teamStats={};
   function ensureTeam(t){
-    if(!teamStats[t.id]) teamStats[t.id]={names:t.names.join(' & '),played:0,wins:0,draws:0,loses:0,ptsFor:0,ptsAgainst:0};
+    const label = t.names ? t.names.join(' & ') : (t.name||t.id);
+    if(!teamStats[t.id]) teamStats[t.id]={names:label,played:0,wins:0,draws:0,loses:0,ptsFor:0,ptsAgainst:0};
   }
   done.forEach(m=>{
     ensureTeam(m.teamA); ensureTeam(m.teamB);
@@ -796,10 +900,274 @@ function renderStats(){
 }
 
 // ============================================================
+// CUSTOM TAB — Teams & Matches
+// ============================================================
+let customTeams = [];
+let customMatches = [];
+
+function addCustomTeam(){
+  customTeams.push({id:'ct'+Date.now(), p1:'', p2:''});
+  renderCustomTeams();
+  renderCustomTeamSelects();
+}
+function removeCustomTeam(i){
+  if(customTeams.length<=1){alert('ต้องมีอย่างน้อย 1 ทีม');return;}
+  customTeams.splice(i,1);
+  renderCustomTeams(); renderCustomTeamSelects();
+}
+
+function getTeamLabel(t){
+  if(t.p1&&t.p2) return t.p1+' & '+t.p2;
+  if(t.p1) return t.p1;
+  if(t.p2) return t.p2;
+  return '(ไม่มีชื่อ)';
+}
+
+function renderCustomTeams(){
+  const c=document.getElementById('customTeamList');
+  if(!c)return;
+  if(!customTeams.length){
+    c.innerHTML='<div style="color:var(--text2);font-size:.85rem;padding:8px 0;">ยังไม่มีทีม กด "+ เพิ่มทีม"</div>';
+    return;
+  }
+  c.innerHTML='';
+  customTeams.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px;';
+    const iStyle=`background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:'Kanit',sans-serif;font-size:.88rem;outline:none;width:100%;`;
+    row.innerHTML=`
+      <span style="font-size:.72rem;color:var(--text2);font-family:'Space Mono',monospace;padding:0 4px;">${i+1}</span>
+      <input type="text" value="${t.p1}" placeholder="ชื่อคนที่ 1" style="${iStyle}"
+        oninput="customTeams[${i}].p1=this.value;renderCustomTeamSelects()"/>
+      <input type="text" value="${t.p2}" placeholder="ชื่อคนที่ 2 (ถ้ามี)" style="${iStyle}color:var(--text2);"
+        oninput="customTeams[${i}].p2=this.value;renderCustomTeamSelects()"/>
+      <button class="btn btn-danger btn-sm" onclick="removeCustomTeam(${i})" style="padding:4px 9px;">✕</button>`;
+    c.appendChild(row);
+  });
+}
+function renderCustomTeamSelects(){
+  ['cmTeamA','cmTeamB'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const prev=sel.value;
+    sel.innerHTML=customTeams.map(t=>`<option value="${t.id}">${getTeamLabel(t)}</option>`).join('');
+    if(customTeams.find(t=>t.id===prev)) sel.value=prev;
+  });
+}
+
+function addCustomMatch(){
+  const aId=document.getElementById('cmTeamA').value;
+  const bId=document.getElementById('cmTeamB').value;
+  if(!aId||!bId){alert('เลือกทีมก่อน');return;}
+  if(aId===bId){alert('ทีม A และ B ต้องต่างกัน');return;}
+  const sets=parseInt(document.getElementById('cmSets').value)||2;
+  const tA=customTeams.find(t=>t.id===aId);
+  const tB=customTeams.find(t=>t.id===bId);
+  customMatches.push({
+    id:'cm'+Date.now(),
+    teamA:{id:tA.id, name:tA.name, members:tA.members},
+    teamB:{id:tB.id, name:tB.name, members:tB.members},
+    setScores: Array.from({length:sets},()=>({a:'',b:''})),
+    status:'playing', winner:null,
+  });
+  renderCustomMatches();
+}
+
+function renderCustomMatches(){
+  const list=document.getElementById('customMatchList');
+  const info=document.getElementById('cmQueueInfo');
+  if(!list)return;
+  if(!customMatches.length){
+    list.innerHTML='<div class="empty-state"><span class="emoji">⚔️</span>สร้างทีมแล้วเพิ่มแมทช์</div>';
+    if(info) info.textContent='0 แมทช์';
+    return;
+  }
+  if(info) info.textContent=customMatches.length+' แมทช์';
+  list.innerHTML='';
+  customMatches.forEach((m,idx)=>list.appendChild(buildCustomMatchCard(m,idx)));
+}
+
+function buildCustomMatchCard(m, idx){
+  const div=document.createElement('div');
+  div.className='match-card '+(m.status==='done'?'done':'playing');
+  div.id='cmc_'+m.id;
+
+  const aWin=m.winner==='A', bWin=m.winner==='B';
+  const aClass='team-badge'+(aWin?' winner':'');
+  const bClass='team-badge team-b'+(bWin?' winner':'');
+  const aSub=m.teamA.members?`<div style="font-size:.68rem;opacity:.65;">${m.teamA.members}</div>`:'';
+  const bSub=m.teamB.members?`<div style="font-size:.68rem;opacity:.65;">${m.teamB.members}</div>`:'';
+
+  const statusBadge=m.status==='done'
+    ?`<span class="status-badge status-done">✓ จบ</span>`
+    :`<span class="status-badge status-playing">▶ เล่นอยู่</span>`;
+
+  div.innerHTML=`
+    <div class="match-top">
+      <div class="match-num">M${idx+1}</div>
+      <div class="match-teams">
+        <div class="${aClass}" style="text-align:center;">${aWin?'🏆 ':''}${m.teamA.name||'ทีม A'}${aSub}</div>
+        <div class="vs-tag">VS</div>
+        <div class="${bClass}" style="text-align:center;">${bWin?'🏆 ':''}${m.teamB.name||'ทีม B'}${bSub}</div>
+      </div>
+      <div class="match-status-col">${statusBadge}</div>
+    </div>`;
+
+  if(m.status==='playing'){
+    const scoreDiv=document.createElement('div');
+    scoreDiv.style.cssText='margin-top:10px;padding-top:10px;border-top:1px solid var(--border);';
+
+    // Header
+    scoreDiv.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.82rem;font-weight:700;">
+        <span style="flex:1;text-align:right;color:var(--accent);">${m.teamA.name||'ทีม A'}</span>
+        <span style="color:var(--text2);min-width:28px;text-align:center;">vs</span>
+        <span style="flex:1;text-align:left;color:var(--accent2);">${m.teamB.name||'ทีม B'}</span>
+      </div>`;
+
+    // Set rows
+    const setsContainer=document.createElement('div');
+    setsContainer.id='sets_'+m.id;
+    m.setScores.forEach((sv,s)=>{
+      setsContainer.appendChild(makeCustomSetRow(m, s, sv));
+    });
+    scoreDiv.appendChild(setsContainer);
+
+    // Set tally summary
+    const tally=document.createElement('div');
+    tally.id='tally_'+m.id;
+    tally.style.cssText='display:flex;align-items:center;gap:8px;margin:6px 0 4px;font-size:.78rem;';
+    scoreDiv.appendChild(tally);
+    updateCustomTally(m);
+
+    // Footer: + set button + finish
+    const footer=document.createElement('div');
+    footer.style.cssText='display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;';
+    footer.innerHTML=`
+      <button class="btn btn-ghost btn-sm" onclick="addCustomSet('${m.id}')" style="color:var(--accent3);border-color:var(--accent3);">➕ เพิ่ม Set</button>
+      <button class="btn btn-success btn-sm" style="margin-left:auto;" onclick="finishCustomMatch('${m.id}')">✓ จบแมทช์</button>`;
+    scoreDiv.appendChild(footer);
+    div.appendChild(scoreDiv);
+
+  } else if(m.status==='done'){
+    const summary=document.createElement('div');
+    summary.className='done-summary';
+    const setRows=(m.setScores||[]).map((sv,s)=>{
+      const sa=sv.a!==''?sv.a:'–', sb=sv.b!==''?sv.b:'–';
+      const c=sv.a!==''&&sv.b!==''?(+sv.a>+sv.b?'var(--accent)':+sv.b>+sv.a?'var(--accent2)':'var(--yellow)'):'var(--text2)';
+      return `<span style="font-family:'Space Mono',monospace;font-size:.75rem;color:${c};">S${s+1}: ${sa}:${sb}</span>`;
+    }).join(' | ');
+    let wt='';
+    if(m.winner==='A') wt=`🏆 <span class="winner-text">${m.teamA.name}</span> ชนะ`;
+    else if(m.winner==='B') wt=`🏆 <span class="winner-text">${m.teamB.name}</span> ชนะ`;
+    else wt=`<span style="color:var(--yellow);">เสมอ</span>`;
+    summary.innerHTML=`${wt}<br><span style="font-size:.74rem;color:var(--text2);">${setRows}</span>`;
+    div.appendChild(summary);
+  }
+
+  return div;
+}
+
+function makeCustomSetRow(m, s, sv){
+  const row=document.createElement('div');
+  row.id='csr_'+m.id+'_'+s;
+  row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+  row.innerHTML=`
+    <span style="color:var(--text2);min-width:46px;font-size:.82rem;">Set ${s+1}</span>
+    <input type="number" min="0" max="99" value="${sv.a}" placeholder="0"
+      class="score-input" oninput="updateCustomScore('${m.id}',${s},'A',this.value)"/>
+    <span class="score-sep">:</span>
+    <input type="number" min="0" max="99" value="${sv.b}" placeholder="0"
+      class="score-input" oninput="updateCustomScore('${m.id}',${s},'B',this.value)"/>
+    <span id="csh_${m.id}_${s}" class="score-result"></span>`;
+  return row;
+}
+
+function updateCustomScore(id, s, side, val){
+  const m=customMatches.find(x=>x.id===id);
+  if(!m)return;
+  if(side==='A') m.setScores[s].a=val; else m.setScores[s].b=val;
+  const sv=m.setScores[s];
+  const hint=document.getElementById('csh_'+id+'_'+s);
+  if(hint&&sv.a!==''&&sv.b!==''){
+    if(+sv.a>+sv.b){hint.className='score-result a-win';hint.textContent=m.teamA.name+' นำ';}
+    else if(+sv.b>+sv.a){hint.className='score-result b-win';hint.textContent=m.teamB.name+' นำ';}
+    else{hint.className='score-result draw';hint.textContent='เสมอ';}
+  } else if(hint) hint.textContent='';
+  updateCustomTally(m);
+}
+
+function updateCustomTally(m){
+  const tally=document.getElementById('tally_'+m.id);
+  if(!tally)return;
+  let aW=0,bW=0;
+  m.setScores.forEach(sv=>{ if(sv.a!==''&&sv.b!==''){if(+sv.a>+sv.b)aW++;else if(+sv.b>+sv.a)bW++;}});
+  const total=aW+bW;
+  if(!total){tally.innerHTML='';return;}
+  let txt='', cls='';
+  if(aW>bW){txt=`${m.teamA.name} นำ set ${aW}-${bW}`;cls='a-win';}
+  else if(bW>aW){txt=`${m.teamB.name} นำ set ${bW}-${aW}`;cls='b-win';}
+  else{txt=`เสมอ set ${aW}-${bW} 🔥`;cls='draw';}
+  tally.innerHTML=`<span class="score-result ${cls}" style="font-size:.8rem;">${txt}</span>`;
+}
+
+function addCustomSet(id){
+  const m=customMatches.find(x=>x.id===id);
+  if(!m)return;
+  const s=m.setScores.length;
+  m.setScores.push({a:'',b:''});
+  const container=document.getElementById('sets_'+id);
+  if(container) container.appendChild(makeCustomSetRow(m,s,{a:'',b:''}));
+  updateCustomTally(m);
+}
+
+function finishCustomMatch(id){
+  const m=customMatches.find(x=>x.id===id);
+  if(!m)return;
+  let aW=0,bW=0;
+  m.setScores.forEach(sv=>{ if(sv.a!==''&&sv.b!==''){if(+sv.a>+sv.b)aW++;else if(+sv.b>+sv.a)bW++;}});
+  m.winner = aW>bW?'A':bW>aW?'B':'draw';
+  m.scoreA = m.setScores.reduce((s,sv)=>s+(sv.a!==''?+sv.a:0),0)+'';
+  m.scoreB = m.setScores.reduce((s,sv)=>s+(sv.b!==''?+sv.b:0),0)+'';
+  m.status='done';
+  renderCustomMatches();
+}
+
+// ============================================================
 // INIT
 // ============================================================
 renderPlayerTable();
 renderFixPairsSetup();
+updateCourtNameInputs('r');
+updateCourtNameInputs('f');
+
+// Court picker toggle helper
+function showCourtPicker(id, mode){
+  const picker = document.getElementById('courtPicker_'+id);
+  if(!picker) return;
+  if(picker.style.display !== 'none'){ picker.style.display='none'; return; }
+  const courts = parseInt(document.getElementById(mode==='random'?'rCourts':'fCourts').value)||1;
+  const prefix = mode==='random'?'r':'f';
+  picker.innerHTML = '<span style="font-size:.72rem;color:var(--text2);margin-right:6px;">ย้ายไปสนาม:</span>' +
+    Array.from({length:courts},(_,i)=>{
+      const label = getCourtLabel(prefix, i+1);
+      return `<button class="btn btn-ghost btn-sm" style="padding:3px 9px;font-size:.75rem;margin:2px;"
+        onclick="reassignCourt('${id}','${mode}',${i+1})">${label}</button>`;
+    }).join('');
+  picker.style.display = 'block';
+}
+
+function reassignCourt(id, mode, newCourt){
+  const list = mode==='random'?randomMatches:fixMatches;
+  const m = list.find(x=>x.id===id);
+  if(!m) return;
+  const oldCourt = m.courtIdx||m.court;
+  // If another playing match is on newCourt, swap
+  const other = list.find(x=>x.status==='playing' && x.id!==id && (x.courtIdx||x.court)===newCourt);
+  if(other){ other.courtIdx=oldCourt; other.court=oldCourt; }
+  m.courtIdx = newCourt; m.court = newCourt;
+  if(mode==='random') renderRandomMatches(); else renderFixMatches();
+}
 </script>
 </body>
 </html>
